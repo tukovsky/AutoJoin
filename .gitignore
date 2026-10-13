@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+meetings.json
+chrome_profile/
+debug_*.png
+build/
+dist/
+*.spec
+.venv/
+.pytest_cache/
+.ruff_cache/
