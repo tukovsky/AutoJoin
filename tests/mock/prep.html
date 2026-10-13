@@ -1,0 +1,19 @@
+<!doctype html><html lang="ru"><body>
+<h2>Введите свое имя и присоединитесь</h2>
+<label for="n">Имя *</label><input id="n" type="text">
+<button id="join" onclick="doJoin()">Присоединиться к совещанию</button>
+<div id="ov" style="position:fixed;inset:0;background:#000;color:#fff;z-index:10">
+<p>Разрешите Webex использовать ваши микрофон и камеру.</p>
+<button onclick="window.usedMedia=true;document.getElementById('ov').remove()">Использовать микрофон и камеру</button>
+<a href="#" role="link" onclick="window.skipped=true;document.getElementById('ov').remove();return false">Продолжить без использования микрофона и камеры</a>
+</div>
+<div id="meet" style="display:none"><button onclick="window.left=true;document.body.innerHTML='bye'">Покинуть совещание</button></div>
+<script>
+function doJoin(){
+ window.joined=document.getElementById('n').value;
+ document.getElementById('meet').style.display='block';
+ setTimeout(()=>{var d=document.createElement('div');d.id='ov2';d.style='position:fixed;inset:0;background:#000;color:#fff;z-index:10';
+ d.innerHTML='<p>Разрешите Webex использовать ваш микрофон.</p><button onclick="window.usedMedia=true">Использовать микрофон</button><span role="button" tabindex=0 onclick="window.skipped2=true;document.getElementById(\'ov2\').remove()">Продолжить без использования микрофона</span>';
+ document.body.appendChild(d)},1500);
+}
+</script></body></html>
