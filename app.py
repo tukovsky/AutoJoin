@@ -1007,16 +1007,6 @@ class App:
         self.startup_notes = []
         self.log_lines = []
         self.preempted = set()
-        self.load()
-        self.lang_var = tk.StringVar(value=LANG)
-        root.title(tr("app_title"))
-        sw = root.winfo_screenwidth()
-        sh = root.winfo_screenheight()
-        w = min(1020, sw - 40)
-        h = min(780, sh - 120)
-        root.geometry(f"{w}x{h}+{(sw - w) // 2}+16")
-        root.minsize(860, 500)
-        root.configure(bg=BG)
         self.meetings = []
         self.status = {}
         self.stops = {}
@@ -1034,6 +1024,17 @@ class App:
         self.end_m = tk.StringVar(value="30")
         today = datetime.now().weekday()
         self.day_vars = [tk.BooleanVar(value=(i == today)) for i in range(7)]
+
+        self.load()
+        self.lang_var = tk.StringVar(value=LANG)
+        root.title(tr("app_title"))
+        sw = root.winfo_screenwidth()
+        sh = root.winfo_screenheight()
+        w = min(1020, sw - 40)
+        h = min(780, sh - 120)
+        root.geometry(f"{w}x{h}+{(sw - w) // 2}+16")
+        root.minsize(860, 500)
+        root.configure(bg=BG)
 
         self.setup_style()
         self.bind_clipboard_keys()

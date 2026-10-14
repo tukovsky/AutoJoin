@@ -169,3 +169,54 @@ def test_waits_for_internet(monkeypatch):
     logs = []
     assert app.wait_for_internet(datetime.now() + timedelta(hours=1), stop, logs.append)
     assert len(logs) == 2
+
+
+def make_root():
+    try:
+        import tkinter
+
+        root = tkinter.Tk()
+        root.withdraw()
+        return root
+    except Exception:
+        import pytest
+
+        pytest.skip("no display for Tk")
+
+
+def test_app_restores_saved_data_on_second_launch(monkeypatch, tmp_path):
+    import json
+
+    data_file = tmp_path / "meetings.json"
+    saved = {
+        "name": "Illia",
+        "lang": "en",
+        "meetings": [
+            {"id": "a1", "title": "T", "platform": "Webex", "url": "https://x", "days": [0], "start": "09:00", "end": "10:00"}
+        ],
+    }
+    data_file.write_text(json.dumps(saved), encoding="utf-8")
+    monkeypatch.setattr(app, "DATA_FILE", data_file)
+    root = make_root()
+    try:
+        window = app.App(root)
+        assert window.name_var.get() == "Illia"
+        assert [m["id"] for m in window.meetings] == ["a1"]
+        assert window.meetings[0]["enabled"] is True
+        assert app.LANG == "en"
+    finally:
+        app.LANG = "ru"
+        root.destroy()
+
+
+def test_app_survives_broken_data_file(monkeypatch, tmp_path):
+    data_file = tmp_path / "meetings.json"
+    data_file.write_text("{ not json", encoding="utf-8")
+    monkeypatch.setattr(app, "DATA_FILE", data_file)
+    root = make_root()
+    try:
+        window = app.App(root)
+        assert window.meetings == []
+        assert (tmp_path / "meetings.broken.json").exists()
+    finally:
+        root.destroy()
