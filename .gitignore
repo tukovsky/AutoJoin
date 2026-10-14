@@ -9,3 +9,5 @@ dist/
 .venv/
 .pytest_cache/
 .ruff_cache/
+meetings.broken.json
+meetings.tmp
