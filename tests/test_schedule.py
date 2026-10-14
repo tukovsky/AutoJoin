@@ -62,3 +62,110 @@ def test_migrate_broken_entry_is_dropped():
 def test_teams_protocol_url():
     assert app.teams_protocol_url("https://teams.microsoft.com/meet/123?p=abc") == "msteams:/meet/123?p=abc"
     assert app.teams_protocol_url("https://example.com/x") is None
+
+
+def test_parse_ics_weekly_events():
+    from pathlib import Path
+
+    text = Path(__file__).parent.joinpath("mock", "timetable.ics").read_text(encoding="utf-8")
+    items, skipped = app.parse_ics(text, datetime(2026, 10, 14, 17, 0))
+    assert skipped == 0
+    assert len(items) == 14
+    assert sum(1 for it in items if it["online"]) == 9
+    first = items[0]
+    assert first["days"] == [0]
+    assert (first["start"], first["end"]) == ("10:50", "12:20")
+    assert first["title"] == "Manažment softvérových projektov · Cvičenie laboratórne"
+
+
+def test_parse_ics_skips_finished_series():
+    from pathlib import Path
+
+    text = Path(__file__).parent.joinpath("mock", "timetable.ics").read_text(encoding="utf-8")
+    items, skipped = app.parse_ics(text, datetime(2027, 6, 1, 9, 0))
+    assert items == []
+    assert skipped == 14
+
+
+def test_language_switch_changes_texts():
+    try:
+        app.LANG = "en"
+        assert app.days_text([0, 2]) == "Mon, Wed"
+        assert app.next_run_text(MEETING, datetime(2026, 10, 13, 9, 0), False) == "tomorrow 12:30"
+    finally:
+        app.LANG = "ru"
+
+
+def test_all_languages_have_same_keys():
+    assert set(app.STRINGS["ru"]) == set(app.STRINGS["en"])
+
+
+def make_retry_env(monkeypatch):
+    import threading
+    from datetime import timedelta
+
+    monkeypatch.setattr(app, "internet_ok", lambda: True)
+    monkeypatch.setattr(app, "RETRY_DELAY", 0)
+    meeting = {"title": "T", "platform": "Webex", "end": "23:59"}
+    end_dt = datetime.now() + timedelta(hours=1)
+    return meeting, end_dt, threading.Event()
+
+
+def test_retries_until_success(monkeypatch):
+    meeting, end_dt, stop = make_retry_env(monkeypatch)
+    calls = []
+
+    def runner(m, profile, log, event):
+        calls.append(1)
+        if len(calls) < 3:
+            raise RuntimeError("boom")
+        event.set()
+
+    states = []
+    result = app.run_with_retries(meeting, {}, lambda msg: None, stop, runner=runner, end_dt=end_dt, on_state=states.append)
+    assert result == "done"
+    assert len(calls) == 3
+    assert "retry" in states
+
+
+def test_gives_up_after_max_attempts(monkeypatch):
+    meeting, end_dt, stop = make_retry_env(monkeypatch)
+    calls = []
+
+    def runner(m, profile, log, event):
+        calls.append(1)
+        raise RuntimeError("boom")
+
+    result = app.run_with_retries(meeting, {}, lambda msg: None, stop, runner=runner, end_dt=end_dt)
+    assert result == "error"
+    assert len(calls) == app.MAX_ATTEMPTS
+
+
+def test_rejoins_when_meeting_drops(monkeypatch):
+    meeting, end_dt, stop = make_retry_env(monkeypatch)
+    monkeypatch.setattr(app, "DROP_DELAY", 0)
+    calls = []
+
+    def runner(m, profile, log, event):
+        calls.append(1)
+        if len(calls) == 2:
+            event.set()
+
+    logs = []
+    result = app.run_with_retries(meeting, {}, logs.append, stop, runner=runner, end_dt=end_dt)
+    assert result == "done"
+    assert len(calls) == 2
+    assert any("lost" in x or "потеряна" in x for x in logs)
+
+
+def test_waits_for_internet(monkeypatch):
+    import threading
+    from datetime import timedelta
+
+    answers = iter([False, False, True])
+    monkeypatch.setattr(app, "internet_ok", lambda: next(answers))
+    stop = threading.Event()
+    stop.wait = lambda timeout=None: None
+    logs = []
+    assert app.wait_for_internet(datetime.now() + timedelta(hours=1), stop, logs.append)
+    assert len(logs) == 2

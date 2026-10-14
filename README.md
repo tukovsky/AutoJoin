@@ -10,6 +10,11 @@ A Windows program that joins Webex and Teams meetings by itself on a weekly sche
 - Webex: opens the link in Chrome, enters your name, dismisses the microphone and camera prompts with "Continue without using microphone and camera" and joins.
 - Teams: opens the Teams desktop app from the link and presses "Join now". The microphone and camera are never turned on by the program.
 - Leaves the meeting at the scheduled time.
+- Import from an iCal (`.ics`) file: a university timetable exported from MAIS (button "Export do iCal") or any calendar with weekly events turns into a list of meetings. You only add the links.
+- Each meeting can be switched on or off with the green check / red cross in the first column of the schedule (click it).
+- Interface in Russian and English: the RU / EN switch is in the top right corner. The choice is remembered.
+- Protection against failures: up to 5 join attempts with growing pauses, waiting for the internet and continuing when it returns, automatic rejoin if the connection to the meeting is lost, leaving the previous meeting when the next one starts, the computer does not fall asleep while the queue runs, only one copy of the program can run, a damaged `meetings.json` is saved as `meetings.broken.json` instead of being lost.
+- If you leave a meeting by hand, the program will join it again. To keep it away, click the red cross for that meeting or press "Stop".
 
 ## Requirements
 
@@ -39,8 +44,6 @@ On GitHub: create a tag like `v1.0.0` (for example via Releases → Draft a new 
 3. Press "Запустить очередь" (Start queue) and keep the program open.
 
 The meeting list and your name are stored in `meetings.json` next to the program. The file is excluded from the repository because it contains meeting links.
-
-The interface language is Russian.
 
 ## First Teams run
 
@@ -81,6 +84,11 @@ The tests cover the schedule logic and the Webex join flow on mock pages from `t
 - Webex: открывает ссылку в Chrome, вводит имя, закрывает окна про микрофон и камеру кнопкой «Продолжить без использования микрофона и камеры» и заходит.
 - Teams: открывает приложение Teams по ссылке и нажимает «Присоединиться сейчас». Микрофон и камеру программа не включает.
 - Выход из собрания в назначенное время.
+- Импорт из файла iCal (`.ics`): расписание, выгруженное из МАИС (кнопка «Export do iCal»), или любой календарь с еженедельными событиями превращается в список собраний. Остаётся только вставить ссылки.
+- Каждое собрание можно включить или выключить зелёной галочкой / красным крестиком в первом столбце расписания (нажмите на него).
+- Интерфейс на русском и английском: переключатель RU / EN в правом верхнем углу. Выбор запоминается.
+- Защита от сбоев: до 5 попыток входа с растущими паузами, ожидание интернета и продолжение, когда он вернётся, автоматический повторный вход при потере связи с собранием, выход из предыдущего собрания, когда начинается следующее, компьютер не засыпает, пока работает очередь, нельзя запустить две копии программы, повреждённый `meetings.json` сохраняется как `meetings.broken.json`, а не теряется.
+- Если выйти из собрания вручную, программа зайдёт в него снова. Чтобы этого не было, нажмите красный крестик у этого собрания или «Остановить».
 
 ## Требования
 
