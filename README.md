@@ -1,3 +1,5 @@
+[![CI](https://github.com/tukovsky/AutoJoin/actions/workflows/ci.yml/badge.svg)](https://github.com/tukovsky/AutoJoin/actions/workflows/ci.yml)
+
 # AutoJoin
 
 The Russian version of this README is below: [Русская версия ↓](#русская-версия)
