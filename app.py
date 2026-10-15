@@ -284,6 +284,7 @@ DAY_NAMES = {
     "ru": ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
     "en": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
 }
+VERSION = "dev"
 LANG = "ru"
 MAX_ATTEMPTS = 5
 RETRY_DELAY = 20
@@ -295,6 +296,10 @@ INSTANCE_PORT = 47631
 def tr(key, **kw):
     text = STRINGS[LANG].get(key) or STRINGS["ru"][key]
     return text.format(**kw) if kw else text
+
+
+def window_title():
+    return f"{tr('app_title')} v{VERSION}" if VERSION != "dev" else f"{tr('app_title')} (dev)"
 
 
 def day_names():
@@ -1027,7 +1032,7 @@ class App:
 
         self.load()
         self.lang_var = tk.StringVar(value=LANG)
-        root.title(tr("app_title"))
+        root.title(window_title())
         sw = root.winfo_screenwidth()
         sh = root.winfo_screenheight()
         w = min(1020, sw - 40)
@@ -1040,6 +1045,7 @@ class App:
         self.bind_clipboard_keys()
         self.bind_context_menu()
         self.build()
+        self.log(f"AutoJoin {VERSION}")
         for key, kw in self.startup_notes:
             self.log(tr(key, **kw))
         self.refresh()
@@ -1339,7 +1345,7 @@ class App:
         self.save()
         for child in self.root.winfo_children():
             child.destroy()
-        self.root.title(tr("app_title"))
+        self.root.title(window_title())
         self.build()
         self.set_pill(self.running)
         self.start_btn.configure(state="disabled" if self.running else "normal")
