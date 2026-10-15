@@ -220,3 +220,18 @@ def test_app_survives_broken_data_file(monkeypatch, tmp_path):
         assert (tmp_path / "meetings.broken.json").exists()
     finally:
         root.destroy()
+
+
+def test_version_line_is_stampable():
+    import re
+    from pathlib import Path
+
+    source = Path(app.__file__).read_text(encoding="utf-8")
+    assert len(re.findall(r'^VERSION = ".*"$', source, flags=re.M)) == 1
+
+
+def test_window_title_shows_version(monkeypatch):
+    monkeypatch.setattr(app, "VERSION", "1.2.3")
+    assert app.window_title().endswith("v1.2.3")
+    monkeypatch.setattr(app, "VERSION", "dev")
+    assert app.window_title().endswith("(dev)")

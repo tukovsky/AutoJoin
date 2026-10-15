@@ -72,7 +72,35 @@ The tests cover the schedule logic and the Webex join flow on mock pages from `t
 | `requirements.txt` | Python dependencies |
 | `build.bat` | local exe build |
 | `tests/` | tests and mock pages |
-| `.github/workflows/` | CI and release workflows |
+| `.github/workflows/` | CI, release and security workflows |
+| `.github/dependabot.yml` | automatic dependency updates |
+| `CHANGELOG.md` | list of changes per version |
+
+## CI/CD pipeline
+
+```mermaid
+flowchart LR
+    A["Pull request or push to main"] --> B["CI: ruff + pytest (Python 3.10, 3.12)"]
+    A --> C["Security: CodeQL, gitleaks, pip-audit"]
+    D["Tag v*"] --> E["CI again"] --> F["PyInstaller build"] --> G["SHA256 + release notes"] --> H["GitHub Release with AutoJoin.exe"]
+```
+
+- `ci.yml` is reusable: the same tests run for every pull request and again before every release.
+- `release.yml` builds the exe only after the tests pass, writes the tag into the program as its version and attaches `AutoJoin.exe` and `AutoJoin.exe.sha256`.
+- `security.yml` runs CodeQL, secret scanning and a dependency audit. `dependabot.yml` opens pull requests for outdated dependencies and actions.
+
+Check a download (PowerShell): `(Get-FileHash AutoJoin.exe -Algorithm SHA256).Hash` and compare it with the `.sha256` file from the release.
+
+## Development
+
+```
+git switch -c feature/my-change
+python -m pip install -r requirements.txt pytest pytest-cov ruff
+python -m pytest
+ruff check --select E4,E7,E9,F .
+```
+
+Open a pull request into `main`; merge when CI is green. To release: add a line to `CHANGELOG.md`, then create a tag such as `v0.3.0`.
 
 ---------------------------------
 
@@ -146,4 +174,32 @@ python -m pytest
 | `requirements.txt` | зависимости Python |
 | `build.bat` | локальная сборка exe |
 | `tests/` | тесты и тестовые страницы |
-| `.github/workflows/` | CI и выпуск релиза |
+| `.github/workflows/` | CI, выпуск релиза и проверки безопасности |
+| `.github/dependabot.yml` | автоматическое обновление зависимостей |
+| `CHANGELOG.md` | список изменений по версиям |
+
+## Конвейер CI/CD
+
+```mermaid
+flowchart LR
+    A["Pull request или push в main"] --> B["CI: ruff + pytest (Python 3.10, 3.12)"]
+    A --> C["Безопасность: CodeQL, gitleaks, pip-audit"]
+    D["Тег v*"] --> E["Повторный CI"] --> F["Сборка PyInstaller"] --> G["SHA256 + описание релиза"] --> H["Релиз GitHub с AutoJoin.exe"]
+```
+
+- `ci.yml` вызывается повторно: одни и те же тесты идут для каждого pull request и ещё раз перед каждым релизом.
+- `release.yml` собирает exe только после зелёных тестов, записывает версию из тега в программу и прикрепляет `AutoJoin.exe` и `AutoJoin.exe.sha256`.
+- `security.yml` запускает CodeQL, поиск секретов и проверку зависимостей. `dependabot.yml` сам предлагает обновления зависимостей и actions.
+
+Проверить скачанный файл (PowerShell): `(Get-FileHash AutoJoin.exe -Algorithm SHA256).Hash`, затем сравнить с файлом `.sha256` из релиза.
+
+## Разработка
+
+```
+git switch -c feature/my-change
+python -m pip install -r requirements.txt pytest pytest-cov ruff
+python -m pytest
+ruff check --select E4,E7,E9,F .
+```
+
+Откройте pull request в `main` и сливайте, когда CI зелёный. Для релиза: добавьте строку в `CHANGELOG.md` и создайте тег вида `v0.3.0`.
